@@ -3,6 +3,7 @@
 namespace Nowendwell\SimpleDatatables;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Response;
 
 class SimpleDatatablesServiceProvider extends ServiceProvider
 {
@@ -42,6 +43,28 @@ class SimpleDatatablesServiceProvider extends ServiceProvider
             // Registering package commands.
             // $this->commands([]);
         }
+
+        Response::macro('toDatatables', function ($collection, $fields = []) {
+
+            $all_data = [];
+            $field_data = [];
+            foreach($collection as $item) {
+                foreach($fields as $field) {
+                    $field = str_replace('.', '->', $field);
+                    $field_data[] = $item->{$field};
+                }
+                $all_data[] = $field_data;
+            }
+
+            $data = [
+                'data' => $all_data,
+                'draw' => 1,
+                'recordsFiltered' => $collection->count(),
+                'recordsTotal' => $collection->recordsTotal,
+            ];
+
+            return response()->json($data);
+        });
     }
 
     /**
